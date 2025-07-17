@@ -52,6 +52,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_ratelimit.middleware.RatelimitMiddleware',
      
 ]
 
@@ -158,6 +159,11 @@ CACHES = {
         }
     }
 }
+
+
+RATELIMIT_VIEW = 'wallet.views.rate_limited_view'
+
+
 
 
 

@@ -17,13 +17,18 @@ import io
 import base64
 from django.conf import settings
 from django_ratelimit.decorators import ratelimit
+from django.contrib.auth.decorators import login_required
 
 
 TRANSACTION_THRESHOLD = 100000
+  
 
-@ratelimit(key='user', rate='10/m', block=True)
+
+@ratelimit(key='ip', method='GET', rate='5/m', block=True)
 @login_required
 def dashboard_view(request):
+    if getattr(request, 'limited', False):
+        return render(request, 'rate.html', status=429)
     wallets = Wallet.objects.filter(user=request.user)
     transactions = Transaction.objects.filter(wallet__user=request.user).order_by('-created_at')[:10]
     fraud_logs = FraudLog.objects.filter(user=request.user).order_by('-flagged_at')  # 👈 Add this
@@ -34,9 +39,11 @@ def dashboard_view(request):
         'fraud_logs': fraud_logs,  
     })
 
-@ratelimit(key='user', rate='10/m', block=True)
+@ratelimit(key='user', method='GET', rate='5/m', block=True)
 @login_required
 def deposit_view(request):
+    if getattr(request, 'limited', False):
+        return render(request, 'rate.html', status=429)
     if request.method == "POST":
         form = DepositForm(request.POST, user=request.user)
         if form.is_valid():
@@ -67,7 +74,7 @@ def deposit_view(request):
         form = DepositForm(user=request.user)
     return render(request, 'deposit.html', {'form': form})
 
-@ratelimit(key='user', rate='10/m', block=True)
+@ratelimit(key='user', method='GET', rate='5/m', block=True)
 def check_large_withdrawals(wallet):
     last_24_hours = now() - timedelta(hours=24)
     total_withdrawn = Transaction.objects.filter(
@@ -83,9 +90,11 @@ def check_large_withdrawals(wallet):
             reason="Withdrawals exceeded ₹5L in 24 hours"
         )
 
-@ratelimit(key='user', rate='10/m', block=True)
+@ratelimit(key='user', method='GET', rate='5/m', block=True)
 @login_required
 def withdraw_view(request):
+    if getattr(request, 'limited', False):
+        return render(request, 'rate.html', status=429)
     if request.method == 'POST':
         form = WithdrawForm(request.POST, user=request.user)
         if form.is_valid():
@@ -120,9 +129,11 @@ def withdraw_view(request):
 
 
 
-@ratelimit(key='user', rate='10/m', block=True)
+@ratelimit(key='user', method='GET', rate='5/m', block=True)
 @login_required
 def transfer_view(request):
+    if getattr(request, 'limited', False):
+        return render(request, 'rate.html', status=429)
     if request.method == 'POST':
         form = TransferForm(request.POST, user=request.user)
         if form.is_valid():
@@ -183,9 +194,11 @@ def transfer_view(request):
     return render(request, 'transfer.html', {'form': form})
 
     
-@ratelimit(key='user', rate='10/m', block=True)
+@ratelimit(key='user', method='GET', rate='5/m', block=True)
 @login_required
 def ledger_view(request):
+    if getattr(request, 'limited', False):
+        return render(request, 'rate.html', status=429)
     wallets = Wallet.objects.filter(user=request.user)
     selected_wallet_id = request.GET.get('wallet')
     selected_wallet = None
@@ -375,8 +388,10 @@ def manager_transaction_history(request):
 
 
 # Registration and Login with OTP
-@ratelimit(key='ip', rate='5/m', block=True)
+@ratelimit(key='ip', method='GET', rate='5/m', block=True)
 def register_view(request):
+    if getattr(request, 'limited', False):
+        return render(request, 'rate.html', status=429)
     if request.method == "POST":
         form = UserRegisterForm(request.POST)
         if form.is_valid():
@@ -412,8 +427,10 @@ def verify_otp(request):
     qr_data = base64.b64encode(buffer.getvalue()).decode()
     return render(request, 'register/verify_otp.html', {'form': form, 'qr_data': qr_data})
 
-@ratelimit(key='ip', rate='5/m', block=True)
+@ratelimit(key='ip', method='GET', rate='5/m', block=True)
 def custom_login_view(request):
+    if getattr(request, 'limited', False):
+            return render(request, 'rate.html', status=429)
     if request.method == 'POST':
         form = CustomLoginForm(request, data=request.POST)
         if form.is_valid():
@@ -436,3 +453,8 @@ from .models import LoginHistory
 def manager_login_history(request):
     logins = LoginHistory.objects.select_related('user').order_by('-login_time')
     return render(request, 'manager/login_history.html', {'logins': logins})
+
+from django.shortcuts import render
+
+def rate_limited_view(request, exception):
+    return render(request, 'rate.html', status=429)
