@@ -1,0 +1,137 @@
+{% extends 'manager/base_manager.html' %}
+{% block content %}
+<div class="container mt-5">
+  <h2 class="mb-4">👨‍💼 Manager Dashboard</h2>
+
+  <!-- 🔹 Customers Table -->
+  <div class="card mb-4 shadow">
+    <div class="card-header bg-primary text-white">
+      <strong>📋 Registered Customers</strong>
+    </div>
+    <div class="card-body table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Address</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in customers %}
+            <tr>
+              <td>{{ user.username }}</td>
+              <td>{{ user.email }}</td>
+              <td>{{ user.phone_number }}</td>
+              <td>{{ user.address }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="4" class="text-center text-muted">No customers found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 🔹 Wallets Table -->
+  <div class="card mb-4 shadow">
+    <div class="card-header bg-success text-white">
+      <strong>💼 All Wallets</strong>
+    </div>
+    <div class="card-body table-responsive">
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Currency</th>
+            <th>Account Number</th>
+            <th>Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for wallet in wallets %}
+            <tr>
+              <td>{{ wallet.user.username }}</td>
+              <td>{{ wallet.currency.code }}</td>
+              <td>{{ wallet.account_number }}</td>
+              <td>{{ wallet.balance }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="4" class="text-center text-muted">No wallets available.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 🔹 Pending Transactions -->
+  <div class="card mb-4 shadow">
+    <div class="card-header bg-warning">
+      <strong>🕒 Pending Transactions</strong>
+    </div>
+    <div class="card-body table-responsive">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Type</th>
+            <th>Amount</th>
+            <th>Note</th>
+            <th>Time</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for tx in pending_txs %}
+            <tr>
+              <td>{{ tx.wallet.user.username }}</td>
+              <td>{{ tx.tx_type }}</td>
+              <td>{{ tx.amount }}</td>
+              <td>{{ tx.note }}</td>
+              <td>{{ tx.created_at|date:"Y-m-d H:i" }}</td>
+              <td>
+                <a href="{% url 'approve_transaction' tx.id %}" class="btn btn-sm btn-success">Approve</a>
+                <a href="{% url 'reject_transaction' tx.id %}" class="btn btn-sm btn-danger">Reject</a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="6" class="text-center text-muted">No pending transactions.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 🔹 Fraud Logs -->
+  <div class="card mb-5 shadow">
+    <div class="card-header bg-danger text-white">
+      <strong>🚩 Fraud Alerts</strong>
+    </div>
+    <div class="card-body table-responsive">
+      <table class="table table-dark table-sm">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Transaction</th>
+            <th>Reason</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in fraud_logs %}
+            <tr>
+              <td>{{ log.user.username }}</td>
+              <td>{{ log.transaction.tx_type }} ₹{{ log.transaction.amount }}</td>
+              <td>{{ log.reason }}</td>
+              <td>{{ log.flagged_at|date:"Y-m-d H:i" }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="4" class="text-center text-muted">No fraud alerts.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

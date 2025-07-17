@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard | Virtual Wallet{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card p-4 shadow-sm bg-white rounded">
+            <h2 class="mb-2">Welcome, {{ user.first_name|default:user.username }} 👋</h2>
+            <p class="text-muted">Here’s your account summary and recent activity.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Fraud Logs -->
+{% if fraud_logs %}
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <strong>⚠ Fraud Alerts Detected:</strong>
+    <ul class="mb-0 mt-1">
+        {% for log in fraud_logs %}
+        <li>{{ log.flagged_at|date:"d M Y H:i" }} - {{ log.reason }}</li>
+        {% endfor %}
+    </ul>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
+
+
+<!-- Wallet Summary -->
+<div class="row">
+    {% for wallet in wallets %}
+    <div class="col-md-4">
+        <div class="card text-white mb-3" style="background: linear-gradient(to right, #4b6cb7, #182848);">
+            <div class="card-body">
+                <h5 class="card-title">{{ wallet.currency.name }}</h5>
+                
+                <p class="card-text fs-5 fw-semibold">
+                    💰 Total Balance: ₹{{ wallet.balance }}
+                </p>
+                
+                <p class="card-text">
+                    🔒 Frozen Amount: ₹{{ wallet.frozen_amount }}
+                </p>
+                
+                <!-- <p class="card-text text-warning fw-semibold">
+                    ✅ Available: ₹{{ wallet.available_balance }}
+                </p> -->
+
+                <p class="card-text">
+                    <small>🏦 Account No: {{ wallet.account_number }}</small>
+                </p>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-md-12">
+        <div class="alert alert-info">You don't have any wallets yet.</div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Quick Actions -->
+<div class="row my-4">
+    <div class="col-md-12 text-center">
+        <a href="{% url 'deposit_view' %}" class="btn btn-success m-2 px-4">➕ Deposit</a>
+        <a href="{% url 'withdraw_view' %}" class="btn btn-warning m-2 px-4">➖ Withdraw</a>
+        <a href="{% url 'transfer_view' %}" class="btn btn-primary m-2 px-4">🔁 Transfer</a>
+    </div>
+</div>
+
+<!-- Recent Transactions -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card p-4 shadow-sm bg-white rounded">
+            <h5 class="mb-3">Recent Transactions</h5>
+            {% if transactions %}
+            <table class="table table-bordered table-hover align-middle text-center">
+                <thead class="table-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>From/To</th>
+                        <th>Status</th>
+                        <th>Note</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tx in transactions %}
+                    <tr>
+                        <td>{{ tx.created_at|date:"d M Y H:i" }}</td>
+
+                        <td>
+                            {% if tx.tx_type == "TRANSFER" %}
+                                Transfer
+                            {% else %}
+                                {{ tx.tx_type }}
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if tx.tx_type == "TRANSFER" and tx.target_wallet.user == request.user %}
+                                ₹{{ tx.converted_amount }}
+                            {% else %}
+                                ₹{{ tx.amount }}
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if tx.tx_type == "TRANSFER" %}
+                                {% if tx.wallet.user == request.user %}
+                                    To {{ tx.target_wallet.user.username }}
+                                {% elif tx.target_wallet.user == request.user %}
+                                    From {{ tx.wallet.user.username }}
+                                {% endif %}
+                            {% else %}
+                                Self
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if tx.status == 'APPROVED' %}
+                                <span class="badge bg-success">{{ tx.status }}</span>
+                            {% elif tx.status == 'REJECTED' %}
+                                <span class="badge bg-danger">{{ tx.status }}</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">{{ tx.status }}</span>
+                            {% endif %}
+                        </td>
+
+                        <td>{{ tx.note|default:"-" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-muted">No recent transactions available.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

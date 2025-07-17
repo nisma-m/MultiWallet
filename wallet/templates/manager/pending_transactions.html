@@ -1,0 +1,68 @@
+{% extends 'manager/base_manager.html' %}
+{% block title %}Pending Transactions | Manager Panel{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-sm rounded-4 p-4 bg-white">
+                <h4 class="text-center text-primary mb-4">
+                    <i class="bi bi-clock-history me-2"></i>Pending Transactions for Approval
+                </h4>
+
+                {% if transactions %}
+                    <table class="table table-bordered table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col">User</th>
+                                <th scope="col">Type</th>
+                                <th scope="col">Amount</th>
+                                <th scope="col">From Wallet</th>
+                                <th scope="col">To Wallet</th>
+                                <th scope="col">Note</th>
+                                <th scope="col">Date</th>
+                                <th scope="col" class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tx in transactions %}
+                                <tr>
+                                    <td>{{ tx.wallet.user.username }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if tx.tx_type == 'DEPOSIT' %}success{% elif tx.tx_type == 'WITHDRAW' %}danger{% else %}warning{% endif %}">
+                                            {{ tx.tx_type }}
+                                        </span>
+                                    </td>
+                                    <td><strong>{{ tx.amount }}</strong></td>
+                                    <td>{{ tx.wallet.currency.code }}</td>
+                                    <td>
+                                        {% if tx.target_wallet %}
+                                            {{ tx.target_wallet.currency.code }}
+                                        {% else %}
+                                            —
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ tx.note|default:"—" }}</td>
+                                    <td>{{ tx.created_at|date:"M d, Y H:i A" }}</td>
+                                    <td class="text-center">
+                                        <a href="{% url 'approve_transaction' tx.id %}" class="btn btn-sm btn-outline-success me-1">
+                                            ✅ Approve
+                                        </a>
+                                        <a href="{% url 'reject_transaction' tx.id %}" class="btn btn-sm btn-outline-danger">
+                                            ❌ Reject
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="alert alert-info text-center">
+                        No pending transactions found.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

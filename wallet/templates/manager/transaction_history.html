@@ -1,0 +1,68 @@
+{% extends 'manager/base_manager.html' %}
+{% load humanize %}
+
+{% block title %}Transaction History | Manager{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h4 class="mb-4">📑 Transaction History</h4>
+
+    <form method="get" class="mb-4 row">
+        <div class="col-md-6">
+            <select name="wallet" class="form-select" onchange="this.form.submit()">
+                <option value="">-- Filter by Wallet --</option>
+                {% for wallet in wallets %}
+                    <option value="{{ wallet.id }}" {% if wallet.id|stringformat:"s" == selected_wallet_id %}selected{% endif %}>
+                        {{ wallet.user.get_full_name }} - {{ wallet.currency.code }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Type</th>
+                    <th>Wallet</th>
+                    <th>Target</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tx in transactions %}
+                    <tr>
+                        <td>{{ tx.id }}</td>
+                        <td>{{ tx.wallet.user.get_full_name }}</td>
+                        <td>{{ tx.tx_type }}</td>
+                        <td>{{ tx.wallet.currency.code }}</td>
+                        <td>
+                            {% if tx.target_wallet %}
+                                {{ tx.target_wallet.user.get_full_name }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>₹{{ tx.amount|floatformat:2 }}</td>
+                        <td>
+                            <span class="badge {% if tx.status == 'APPROVED' %}bg-success{% elif tx.status == 'PENDING' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                {{ tx.status }}
+                            </span>
+                        </td>
+                        <td>{{ tx.created_at|naturaltime }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center">No transactions found.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

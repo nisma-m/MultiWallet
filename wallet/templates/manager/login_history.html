@@ -1,0 +1,40 @@
+{% extends 'manager/base_manager.html' %}
+
+{% block content %}
+<h2 class="text-xl font-semibold mb-4">🕵️ Manager Login History</h2>
+
+<div class="table-responsive">
+    <table class="table table-bordered table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th class="px-4 py-2">Manager</th>
+                <th class="px-4 py-2">IP Address</th>
+                <th class="px-4 py-2">Device</th>
+                <th class="px-4 py-2">Login</th>
+                <th class="px-4 py-2">Logout</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logins %}
+            <tr>
+                <td class="px-4 py-2">{{ log.user.username }}</td>
+                <td class="px-4 py-2">{{ log.ip_address }}</td>
+                <td class="px-4 py-2">{{ log.user_agent|truncatechars:50 }}</td>
+                <td class="px-4 py-2">{{ log.login_time|date:"d M Y H:i" }}</td>
+                <td class="px-4 py-2">
+                    {% if log.logout_time %}
+                        {{ log.logout_time|date:"d M Y H:i" }}
+                    {% else %}
+                        <span class="badge bg-success">Active</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center py-2">No login history found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

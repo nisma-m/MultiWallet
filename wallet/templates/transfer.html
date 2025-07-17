@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+{% block title %}Transfer | Virtual Wallet{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-md-6">
+        <div class="card shadow p-4 rounded-4 border-light bg-white">
+            <h4 class="text-center text-warning mb-4">
+                <i class="bi bi-arrow-left-right me-2"></i>Transfer Funds
+            </h4>
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                <!-- From Wallet -->
+                <div class="mb-3">
+                    <label for="{{ form.wallet.id_for_label }}" class="form-label fw-semibold">From Wallet</label>
+                    {% with "form-select" as wallet_class %}
+                        {% if form.wallet.errors %}
+                            {% with wallet_class|add:' is-invalid' as wallet_class %}
+                                {% render_field form.wallet class=wallet_class %}
+                            {% endwith %}
+                        {% else %}
+                            {% render_field form.wallet class=wallet_class %}
+                        {% endif %}
+                    {% endwith %}
+                    {% for error in form.wallet.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- To Wallet -->
+                <div class="mb-3">
+                    <label for="{{ form.target_wallet.id_for_label }}" class="form-label fw-semibold">To Wallet</label>
+                    {% with "form-select" as target_class %}
+                        {% if form.target_wallet.errors %}
+                            {% with target_class|add:' is-invalid' as target_class %}
+                                {% render_field form.target_wallet class=target_class %}
+                            {% endwith %}
+                        {% else %}
+                            {% render_field form.target_wallet class=target_class %}
+                        {% endif %}
+                    {% endwith %}
+                    {% for error in form.target_wallet.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Amount -->
+                <div class="mb-3">
+                    <label for="{{ form.amount.id_for_label }}" class="form-label fw-semibold">Amount</label>
+                    {% with "form-control" as amount_class %}
+                        {% if form.amount.errors %}
+                            {% with amount_class|add:' is-invalid' as amount_class %}
+                                {% render_field form.amount class=amount_class placeholder="Enter transfer amount" %}
+                            {% endwith %}
+                        {% else %}
+                            {% render_field form.amount class=amount_class placeholder="Enter transfer amount" %}
+                        {% endif %}
+                    {% endwith %}
+                    {% for error in form.amount.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Note -->
+                <div class="mb-3">
+                    <label for="{{ form.note.id_for_label }}" class="form-label fw-semibold">Note (optional)</label>
+                    {% render_field form.note class="form-control" placeholder="Optional note" rows="3" %}
+                </div>
+
+                <!-- Submit -->
+                <div class="d-grid mt-4">
+                    <button type="submit" class="btn btn-warning fw-bold py-2">
+                        🔁 Submit Transfer
+                    </button>
+                </div>
+            </form>
+
+            <div class="text-center mt-3">
+                <a href="{% url 'dashboard_view' %}" class="text-decoration-none text-muted">
+                    ← Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
